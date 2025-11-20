@@ -1,6 +1,6 @@
 # Nonprofit CRM Data Layer
 
-A complete data ingestion and schema layer for a nonprofit CRM proof-of-concept.
+A complete data ingestion and schema layer for a nonprofit CRM proof-of-concept with AI-powered fundraising message generation.
 
 ## Overview
 
@@ -11,6 +11,8 @@ This project provides a robust, normalized database schema for managing nonprofi
 - **Normalized SQL Schema**: Properly structured tables with relationships and constraints
 - **Data Validation**: Built-in data cleaning and validation during ingestion
 - **ORM Models**: SQLAlchemy models for easy database interaction
+- **REST API**: FastAPI-powered REST API for constituent management
+- **AI-Powered Message Generation**: Claude AI integration for personalized fundraising messages
 - **Flexible Database Support**: Works with SQLite and PostgreSQL
 - **Comprehensive Indexing**: Optimized queries with strategic indexes
 - **Data Quality Handling**: Graceful handling of missing/null values
@@ -59,8 +61,19 @@ contributions (1) ──→ (N) transactions
 ├── schema.sql              # SQL schema with tables, constraints, and indexes
 ├── models.py               # SQLAlchemy ORM models
 ├── load_data.py           # Data ingestion script
+├── main.py                # FastAPI application
+├── config.py              # Application configuration
 ├── requirements.txt        # Python dependencies
+├── .env.example           # Environment variables template
 ├── nonprofit_crm.db       # SQLite database (generated)
+├── api/                   # API layer
+│   ├── routes/
+│   │   └── message.py     # Message generation endpoints
+│   └── schemas/
+│       └── message.py     # API request/response schemas
+├── src/                   # Business logic
+│   └── messages/
+│       └── generator.py   # Claude AI message generator
 └── /mnt/data/             # CSV data files
     ├── constituents.csv
     ├── contributions.csv
@@ -81,7 +94,34 @@ pip install -r requirements.txt
 pip install psycopg2-binary
 ```
 
+3. Configure environment variables:
+```bash
+cp .env.example .env
+# Edit .env and add your Anthropic API key
+```
+
+Get your Anthropic API key from: https://console.anthropic.com/
+
 ## Usage
+
+### Running the API Server
+
+Start the FastAPI server:
+
+```bash
+python3 main.py
+```
+
+Or using uvicorn directly:
+
+```bash
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+The API will be available at:
+- API: http://localhost:8000
+- Interactive docs: http://localhost:8000/docs
+- Alternative docs: http://localhost:8000/redoc
 
 ### Running Data Ingestion
 
@@ -126,6 +166,163 @@ campaign_stats = session.query(
 ).group_by(Contribution.campaign_id).all()
 
 session.close()
+```
+
+## API Endpoints
+
+### Message Generation
+
+Generate personalized fundraising messages using Claude AI.
+
+#### Generate Message for Constituent
+
+**Endpoint:** `POST /api/constituents/{constituent_id}/message`
+
+**Request Body:**
+```json
+{
+  "briefing": {
+    "campaign_name": "Annual Fund 2025",
+    "campaign_goal": 50000.00,
+    "campaign_description": "Support our scholarship program for underserved students",
+    "organization_mission": "Empowering youth through education and mentorship",
+    "key_talking_points": [
+      "Last year we served 500 students",
+      "Every $100 provides books for one student"
+    ],
+    "deadline": "December 31, 2025"
+  },
+  "segment_context": {
+    "segment_name": "Major Donors",
+    "segment_characteristics": "High-capacity donors who have given $10,000+ lifetime",
+    "giving_pattern": "Annual gifts of $1,000-5,000 in November/December"
+  },
+  "tone": "warm, human, relationship-forward",
+  "target_length": 200,
+  "generate_alternates": false,
+  "num_alternates": 3
+}
+```
+
+**Response:**
+```json
+{
+  "subject_line": "Your Impact: Transforming Lives Through Education",
+  "message": "Dear Sarah, your generous support has been instrumental in our mission to empower youth through education...",
+  "alternates": [],
+  "metadata": {
+    "model": "claude-sonnet-4-20250514",
+    "tone": "warm, human, relationship-forward",
+    "target_length": 200,
+    "timestamp": "2025-01-15T10:30:00",
+    "constituent_id": 123,
+    "constituent_name": "Sarah Johnson"
+  }
+}
+```
+
+#### Get Constituent Details
+
+**Endpoint:** `GET /api/constituents/{constituent_id}`
+
+Returns detailed constituent information including contribution history, interactions, and opportunities.
+
+### Example: Generate a Fundraising Message
+
+```bash
+curl -X POST "http://localhost:8000/api/constituents/1/message" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "briefing": {
+      "campaign_name": "Annual Fund 2025",
+      "campaign_goal": 50000,
+      "campaign_description": "Support our scholarship program",
+      "organization_mission": "Empowering youth through education",
+      "key_talking_points": ["500 students served last year"]
+    },
+    "tone": "warm, human, relationship-forward",
+    "target_length": 200
+  }'
+```
+
+### Python Example
+
+```python
+import requests
+
+# Generate a fundraising message
+response = requests.post(
+    "http://localhost:8000/api/constituents/1/message",
+    json={
+        "briefing": {
+            "campaign_name": "Annual Fund 2025",
+            "campaign_goal": 50000.00,
+            "campaign_description": "Support our scholarship program for underserved students",
+            "organization_mission": "Empowering youth through education and mentorship",
+            "key_talking_points": [
+                "Last year we served 500 students",
+                "Every $100 provides books for one student"
+            ],
+            "deadline": "December 31, 2025"
+        },
+        "segment_context": {
+            "segment_name": "Major Donors",
+            "segment_characteristics": "High-capacity donors",
+            "giving_pattern": "Annual gifts in Q4"
+        },
+        "tone": "warm, human, relationship-forward",
+        "target_length": 200,
+        "generate_alternates": True,
+        "num_alternates": 3
+    }
+)
+
+result = response.json()
+print(f"Subject: {result['subject_line']}")
+print(f"Message: {result['message']}")
+print(f"\nGenerated {len(result['alternates'])} alternate versions")
+```
+
+## Message Generator Features
+
+The AI-powered message generator:
+
+- **Personalization**: Incorporates donor's giving history, past interactions, and relationship depth
+- **Context-Aware**: References specific campaigns, organizational mission, and key talking points
+- **Segment Intelligence**: Adapts messaging based on donor segment characteristics and giving patterns
+- **Tone Customization**: Generates messages in your preferred tone (warm, professional, casual, etc.)
+- **Length Control**: Creates messages between 150-500 words with configurable target length
+- **Multiple Versions**: Optionally generates 3-5 alternate message variations
+- **Authentic Voice**: Produces human-sounding, non-generic messages that avoid fundraising clichés
+- **Ready to Send**: Includes compelling subject lines and polished message bodies
+
+### Message Generation Best Practices
+
+1. **Provide Rich Briefing Data**: The more context you provide, the better the message
+2. **Use Specific Talking Points**: Include concrete impact examples and statistics
+3. **Segment Your Donors**: Different segments respond to different messaging approaches
+4. **Test Multiple Versions**: Use `generate_alternates: true` to A/B test messages
+5. **Review and Edit**: While AI-generated messages are high-quality, always review before sending
+6. **Maintain Authenticity**: Adjust tone settings to match your organization's voice
+
+## Configuration
+
+Environment variables (`.env` file):
+
+```bash
+# Required
+ANTHROPIC_API_KEY=your_api_key_here
+
+# Optional (with defaults)
+ANTHROPIC_MODEL=claude-sonnet-4-20250514
+DATABASE_URL=sqlite:///nonprofit_crm.db
+API_HOST=0.0.0.0
+API_PORT=8000
+DEFAULT_TONE=warm, human, relationship-forward
+DEFAULT_MESSAGE_LENGTH=200
+```
+
+See `.env.example` for all available configuration options.
 ```
 
 ### Database Configuration
