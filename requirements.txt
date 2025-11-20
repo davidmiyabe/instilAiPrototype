@@ -1,1 +1,12 @@
+# Database ORM
 sqlalchemy>=2.0.0
+
+# AI and ML
+anthropic>=0.39.0
+
+# Web Framework
+flask>=3.0.0
+flask-cors>=4.0.0
+
+# Environment Configuration
+python-dotenv>=1.0.0

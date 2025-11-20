@@ -14,6 +14,9 @@ This project provides a robust, normalized database schema for managing nonprofi
 - **Flexible Database Support**: Works with SQLite and PostgreSQL
 - **Comprehensive Indexing**: Optimized queries with strategic indexes
 - **Data Quality Handling**: Graceful handling of missing/null values
+- **🆕 AI-Driven Insights**: Intelligent donor analysis using Claude 3.5 Sonnet (see [INSIGHTS_README.md](INSIGHTS_README.md))
+- **🆕 Donor Segmentation**: RFM (Recency, Frequency, Monetary) analysis and engagement scoring
+- **🆕 REST API**: Flask-based API for insights and segmentation
 
 ## Database Schema
 
@@ -59,9 +62,22 @@ contributions (1) ──→ (N) transactions
 ├── schema.sql              # SQL schema with tables, constraints, and indexes
 ├── models.py               # SQLAlchemy ORM models
 ├── load_data.py           # Data ingestion script
+├── test_insights.py       # Test suite for insights engine
 ├── requirements.txt        # Python dependencies
+├── .env.example           # Environment configuration template
+├── README.md              # This file
+├── INSIGHTS_README.md     # Detailed insights engine documentation
 ├── nonprofit_crm.db       # SQLite database (generated)
-└── /mnt/data/             # CSV data files
+├── src/                   # Source code
+│   ├── segmentation/      # Donor segmentation engine
+│   │   └── engine.py      # RFM analysis and segmentation
+│   └── insights/          # AI insights engine
+│       ├── engine.py      # Claude-powered insights generation
+│       ├── prompts.py     # AI prompt templates
+│       └── data_summary.py # Database aggregation functions
+├── api/                   # REST API
+│   └── insights.py        # Flask API endpoints
+└── /mnt/data/            # CSV data files (if using file-based loading)
     ├── constituents.csv
     ├── contributions.csv
     ├── interactions.csv
@@ -127,6 +143,74 @@ campaign_stats = session.query(
 
 session.close()
 ```
+
+## AI-Driven Insights Engine
+
+The project now includes an AI-powered insights engine that analyzes your donor data and generates strategic fundraising recommendations.
+
+### Quick Start
+
+1. **Install dependencies** (if not already installed):
+```bash
+pip install -r requirements.txt
+```
+
+2. **Set up your Anthropic API key**:
+```bash
+cp .env.example .env
+# Edit .env and add your ANTHROPIC_API_KEY
+```
+
+3. **Test the segmentation engine** (no API key needed):
+```bash
+python test_insights.py
+```
+
+4. **Start the API server**:
+```bash
+python api/insights.py
+```
+
+5. **Generate insights**:
+```bash
+curl http://localhost:5000/api/insights
+```
+
+### What You Get
+
+The insights engine provides 4-6 strategic recommendations covering:
+
+- **Giving Trends**: Patterns in contribution behavior and seasonality
+- **Engagement Risks**: Donors at risk of lapsing or declining engagement
+- **Upgrade Opportunities**: Potential for increased giving and major gifts
+- **Portfolio Suggestions**: Strategic recommendations for donor management
+
+Each insight includes:
+- **Title**: Clear, compelling headline
+- **Description**: Analysis with supporting data
+- **Impact**: Quantified potential impact
+- **Recommended Action**: Specific next steps
+
+### Example Insight
+
+```json
+{
+  "title": "Champions Segment Shows Strong Momentum",
+  "description": "Your 2 Champion donors have contributed $27,500 (35.9% of total giving) with perfect engagement scores...",
+  "impact": "Maintaining these relationships could secure $30,000+ in annual recurring revenue.",
+  "recommended_action": "Schedule quarterly stewardship meetings with each Champion..."
+}
+```
+
+### API Endpoints
+
+- `GET /api/insights` - Generate AI-powered insights
+- `GET /api/segmentation` - Get donor segmentation (RFM analysis)
+- `GET /api/segmentation/rfm` - Get RFM scores
+- `GET /api/segmentation/engagement` - Get engagement metrics
+- `POST /api/insights/focused` - Get focused analysis on specific area
+
+See [INSIGHTS_README.md](INSIGHTS_README.md) for complete documentation.
 
 ### Database Configuration
 
