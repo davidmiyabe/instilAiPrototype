@@ -1,19 +1,28 @@
-# Nonprofit CRM Data Layer
+# Nonprofit CRM Platform
 
-A complete data ingestion and schema layer for a nonprofit CRM proof-of-concept.
+A complete nonprofit CRM solution with data ingestion layer and modern web dashboard.
 
 ## Overview
 
-This project provides a robust, normalized database schema for managing nonprofit constituent relationships, including donors, volunteers, board members, contributions, interactions, opportunities, and financial transactions.
+This project provides a robust, normalized database schema for managing nonprofit constituent relationships, including donors, volunteers, board members, contributions, interactions, opportunities, and financial transactions. It includes a world-class dashboard UI built with Next.js for visualizing and exploring the data.
 
 ## Features
 
+### Backend (Python)
 - **Normalized SQL Schema**: Properly structured tables with relationships and constraints
 - **Data Validation**: Built-in data cleaning and validation during ingestion
 - **ORM Models**: SQLAlchemy models for easy database interaction
 - **Flexible Database Support**: Works with SQLite and PostgreSQL
 - **Comprehensive Indexing**: Optimized queries with strategic indexes
 - **Data Quality Handling**: Graceful handling of missing/null values
+
+### Frontend (Next.js Dashboard)
+- **Modern UI**: Built with Next.js 15, Tailwind CSS, and shadcn/ui
+- **AI Insights**: Real-time metrics and performance indicators
+- **Segment Analysis**: Constituent segmentation with detailed analytics
+- **Responsive Design**: Mobile-friendly interface with smooth animations
+- **Type-Safe**: Full TypeScript support
+- **Optimized Performance**: React Query for efficient data fetching
 
 ## Database Schema
 
@@ -71,6 +80,8 @@ contributions (1) ──→ (N) transactions
 
 ## Installation
 
+### Backend Setup
+
 1. Install Python dependencies:
 ```bash
 pip install -r requirements.txt
@@ -79,6 +90,18 @@ pip install -r requirements.txt
 2. (Optional) For PostgreSQL support:
 ```bash
 pip install psycopg2-binary
+```
+
+### Frontend Setup
+
+1. Install Node.js dependencies:
+```bash
+npm install
+```
+
+2. Build the dashboard:
+```bash
+npm run build
 ```
 
 ## Usage
@@ -97,6 +120,27 @@ The script will:
 - Clean and normalize data
 - Load data with proper foreign key ordering
 - Display a summary with row counts and statistics
+
+### Running the Dashboard
+
+After loading data, start the dashboard:
+
+**Development mode:**
+```bash
+npm run dev
+```
+
+**Production mode:**
+```bash
+npm run build
+npm start
+```
+
+The dashboard will be available at `http://localhost:3000` and provides:
+- **Key Insights**: Overview of constituent metrics, contributions, and engagement
+- **Segment Analysis**: Detailed breakdown by constituent type (Donors, Volunteers, Board Members, etc.)
+- **Interactive Navigation**: Click on any segment to view detailed analytics and top constituents
+- **Real-time Data**: Automatic data fetching with loading states
 
 ### Using the ORM Models
 
