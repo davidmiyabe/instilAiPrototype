@@ -1,0 +1,190 @@
+:root {
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --secondary-color: #64748b;
+  --success-color: #10b981;
+  --danger-color: #ef4444;
+  --warning-color: #f59e0b;
+  --bg-color: #f8fafc;
+  --card-bg: #ffffff;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: #e2e8f0;
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* Buttons */
+button,
+.btn-primary,
+.btn-secondary {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.875rem;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: white;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  background-color: var(--bg-color);
+}
+
+.btn-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+}
+
+/* Forms */
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 0.625rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  transition: border-color 0.2s;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+}
+
+/* Utilities */
+.loading {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary);
+}
+
+.error {
+  color: var(--danger-color);
+  padding: 1rem;
+  text-align: center;
+}
+
+.error-message {
+  background-color: #fee2e2;
+  color: var(--danger-color);
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  margin: 1rem 0;
+  font-size: 0.875rem;
+}
+
+.no-data {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-secondary);
+}
+
+.highlight {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.badge-donor {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.badge-volunteer {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.badge-board_member {
+  background-color: #fce7f3;
+  color: #9f1239;
+}
+
+.badge-staff {
+  background-color: #e0e7ff;
+  color: #3730a3;
+}
+
+.badge-other {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+/* Status */
+.status-active {
+  color: var(--success-color);
+  font-weight: 500;
+}
+
+.status-inactive {
+  color: var(--secondary-color);
+}
+
+.status-deceased {
+  color: var(--danger-color);
+}
