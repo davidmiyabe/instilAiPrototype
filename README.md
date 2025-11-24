@@ -1,10 +1,10 @@
-# Nonprofit CRM - MVP
+# Nonprofit CRM Platform
 
-A complete, production-ready CRM system for nonprofit organizations with REST API, web interface, and comprehensive data management.
+A comprehensive, production-ready CRM system for nonprofit organizations with REST API, multiple web interfaces, and advanced data management capabilities.
 
 ## 🎯 Overview
 
-This MVP provides a full-stack CRM solution for nonprofits to manage constituents, track donations, log interactions, and manage fundraising opportunities. It features a FastAPI backend, React frontend, and robust data layer with sample data generation.
+This platform provides a complete full-stack CRM solution for nonprofits to manage constituents, track donations, log interactions, and manage fundraising opportunities. It features a FastAPI backend with two frontend options: a React SPA and a modern Next.js dashboard.
 
 ## ✨ Features
 
@@ -16,7 +16,9 @@ This MVP provides a full-stack CRM solution for nonprofits to manage constituent
 - **Dashboard Statistics** and reporting endpoints
 - **Database Agnostic** - Works with SQLite and PostgreSQL
 
-### Frontend UI
+### Frontend Options
+
+#### React Frontend
 - **Modern React Application** with routing and state management
 - **Responsive Design** that works on desktop and mobile
 - **Dashboard** with key metrics and recent activity
@@ -24,12 +26,21 @@ This MVP provides a full-stack CRM solution for nonprofits to manage constituent
 - **Contribution Tracking** with campaign analytics
 - **Search and Filtering** across all data
 
+#### Next.js Dashboard
+- **Modern UI**: Built with Next.js 15, Tailwind CSS, and shadcn/ui
+- **AI Insights**: Real-time metrics and performance indicators
+- **Segment Analysis**: Constituent segmentation with detailed analytics
+- **Responsive Design**: Mobile-friendly interface with smooth animations
+- **Type-Safe**: Full TypeScript support
+- **Optimized Performance**: React Query for efficient data fetching
+
 ### Data Layer
 - **Normalized SQL Schema** with proper relationships and constraints
 - **SQLAlchemy ORM** for database abstraction
 - **Sample Data Generator** using Faker for realistic test data
 - **Pre-built Views** for reporting and analytics
 - **Comprehensive Indexing** for optimal query performance
+- **Data Quality Handling**: Graceful handling of missing/null values
 
 ## 🚀 Quick Start
 
@@ -50,7 +61,7 @@ The script will:
 4. Start both backend and frontend servers
 
 **Access the application:**
-- Frontend: http://localhost:3000
+- React Frontend: http://localhost:3000
 - Backend API: http://localhost:8000
 - API Docs: http://localhost:8000/docs
 
@@ -58,7 +69,23 @@ The script will:
 - Username: `admin`
 - Password: `secret`
 
-### Option 2: Docker Compose
+### Option 2: Next.js Dashboard
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+npm install
+
+# Load sample data
+python3 generate_sample_data.py
+
+# Start Next.js dashboard (development)
+npm run dev
+```
+
+Dashboard will be available at: http://localhost:3000
+
+### Option 3: Docker Compose
 
 ```bash
 # Generate sample data first
@@ -68,7 +95,7 @@ python3 generate_sample_data.py
 docker-compose up
 ```
 
-### Option 3: Manual Setup
+### Option 4: Manual Setup
 
 #### Backend Setup
 
@@ -89,7 +116,7 @@ uvicorn api.main:app --reload
 
 Backend will be available at: http://localhost:8000
 
-#### Frontend Setup
+#### Frontend Setup (React)
 
 ```bash
 # Navigate to frontend directory
@@ -128,11 +155,18 @@ Frontend will be available at: http://localhost:3000
 │   │   └── context/          # Auth context
 │   ├── package.json
 │   └── vite.config.js
+├── app/                       # Next.js dashboard
+│   ├── api/                   # API routes
+│   ├── dashboard/            # Dashboard pages
+│   └── layout.tsx
+├── components/                # Next.js components
+├── lib/                       # Next.js utilities
 ├── models.py                  # SQLAlchemy ORM models
 ├── schema.sql                 # Database schema
 ├── config.py                  # Application configuration
 ├── generate_sample_data.py    # Sample data generator
 ├── requirements.txt           # Python dependencies
+├── package.json              # Next.js dependencies
 ├── Dockerfile                 # Docker configuration
 ├── docker-compose.yml         # Docker Compose setup
 └── start.sh                   # Quick start script
@@ -317,11 +351,18 @@ python3 generate_sample_data.py
 - uvicorn - ASGI server
 - Faker - Sample data generation
 
-### Frontend
+### React Frontend
 - React - UI framework
 - React Router - Routing
 - Axios - HTTP client
 - Vite - Build tool
+
+### Next.js Dashboard
+- Next.js 15 - React framework
+- Tailwind CSS - Styling
+- shadcn/ui - UI components
+- TypeScript - Type safety
+- React Query - Data fetching
 
 ## 🚢 Deployment
 
@@ -379,6 +420,7 @@ mypy .
 - [x] Database schema and ORM models
 - [x] REST API with authentication
 - [x] React frontend with routing
+- [x] Next.js dashboard with modern UI
 - [x] Dashboard with statistics
 - [x] Constituent management
 - [x] Contribution tracking
