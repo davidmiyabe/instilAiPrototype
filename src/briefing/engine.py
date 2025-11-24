@@ -16,7 +16,7 @@ from sqlalchemy import desc, func
 # Import models from parent directory
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
-from models import Constituent, Contribution, Interaction, Opportunity, Transaction
+from models import Constituent, Contribution, Interaction, Opportunity
 
 
 class BriefingEngine:
@@ -132,13 +132,8 @@ class BriefingEngine:
             Opportunity.constituent_id == constituent_id
         ).order_by(desc(Opportunity.expected_close_date)).all()
 
-        # Fetch transactions (through contributions)
-        contribution_ids = [c.contribution_id for c in contributions]
+        # Transactions not yet implemented
         transactions = []
-        if contribution_ids:
-            transactions = db_session.query(Transaction).filter(
-                Transaction.contribution_id.in_(contribution_ids)
-            ).order_by(desc(Transaction.transaction_date)).all()
 
         return {
             'constituent': constituent,

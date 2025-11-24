@@ -7,7 +7,7 @@ Aggregates database statistics for AI insight generation.
 from typing import Dict, Any
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-from models import Constituent, Contribution, Interaction, Opportunity, Transaction
+from models import Constituent, Contribution, Interaction, Opportunity
 
 
 def get_database_summary(db_session: Session) -> Dict[str, Any]:
@@ -72,16 +72,10 @@ def get_database_summary(db_session: Session) -> Dict[str, Any]:
     summary['average_opportunity_probability'] = float(opportunity_stats.avg_probability or 0)
     summary['opportunity_stages'] = opportunity_stats.stages or 0
 
-    # Transaction statistics
-    transaction_stats = db_session.query(
-        func.count(Transaction.transaction_id).label('total'),
-        func.sum(Transaction.amount).label('total_amount'),
-        func.sum(Transaction.processor_fee).label('total_fees')
-    ).first()
-
-    summary['total_transactions'] = transaction_stats.total or 0
-    summary['total_transaction_amount'] = float(transaction_stats.total_amount or 0)
-    summary['total_processor_fees'] = float(transaction_stats.total_fees or 0)
+    # Transaction statistics (not yet implemented)
+    summary['total_transactions'] = 0
+    summary['total_transaction_amount'] = 0.0
+    summary['total_processor_fees'] = 0.0
 
     # Calculate derived metrics
     if summary['unique_donors'] > 0:
