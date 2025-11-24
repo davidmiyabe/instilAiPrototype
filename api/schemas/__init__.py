@@ -7,10 +7,43 @@ from .message import (
     AlternateMessage
 )
 
+from .crm import (
+    ConstituentCreate,
+    ConstituentUpdate,
+    ConstituentResponse,
+    ContributionCreate,
+    ContributionUpdate,
+    ContributionResponse,
+    InteractionCreate,
+    InteractionUpdate,
+    InteractionResponse,
+    OpportunityCreate,
+    OpportunityUpdate,
+    OpportunityResponse,
+    DashboardStats,
+    GivingSummary
+)
+
 __all__ = [
+    # Message schemas
     "MessageGenerationRequest",
     "MessageGenerationResponse",
     "BriefingData",
     "SegmentContext",
-    "AlternateMessage"
+    "AlternateMessage",
+    # CRM schemas
+    "ConstituentCreate",
+    "ConstituentUpdate",
+    "ConstituentResponse",
+    "ContributionCreate",
+    "ContributionUpdate",
+    "ContributionResponse",
+    "InteractionCreate",
+    "InteractionUpdate",
+    "InteractionResponse",
+    "OpportunityCreate",
+    "OpportunityUpdate",
+    "OpportunityResponse",
+    "DashboardStats",
+    "GivingSummary"
 ]
