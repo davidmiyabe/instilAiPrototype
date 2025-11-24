@@ -20,8 +20,7 @@ from .crm import (
     OpportunityCreate,
     OpportunityUpdate,
     OpportunityResponse,
-    DashboardStats,
-    GivingSummary
+    DashboardStats
 )
 
 __all__ = [
@@ -44,6 +43,5 @@ __all__ = [
     "OpportunityCreate",
     "OpportunityUpdate",
     "OpportunityResponse",
-    "DashboardStats",
-    "GivingSummary"
+    "DashboardStats"
 ]

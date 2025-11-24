@@ -1,5 +1,5 @@
 """
-Pydantic schemas for API request/response models.
+Pydantic schemas for CRM entities.
 """
 from datetime import datetime, date
 from typing import Optional, List
@@ -176,13 +176,3 @@ class DashboardStats(BaseModel):
     pipeline_value: Decimal
     weighted_pipeline: Decimal
     recent_interactions: int
-
-
-# Pagination
-class PaginatedResponse(BaseModel):
-    """Generic paginated response."""
-    items: List
-    total: int
-    page: int
-    page_size: int
-    pages: int
