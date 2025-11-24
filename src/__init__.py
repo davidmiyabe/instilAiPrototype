@@ -1,1 +1,4 @@
-# Nonprofit CRM Source Package
+"""
+Nonprofit CRM Source Package
+Includes briefing system, segmentation, insights, and core utilities.
+"""
