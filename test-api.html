@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Connection Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .test-group {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 API Connection Test</h1>
+        <p>Use this page to test your API connection and verify the proxy is working.</p>
+
+        <div class="test-group">
+            <h3>Test 1: Direct Connection to Port 8000</h3>
+            <p>This tests if the API server is running on port 8000 (without proxy)</p>
+            <button onclick="testDirect()">Test Direct (Port 8000)</button>
+            <div id="direct-result"></div>
+        </div>
+
+        <div class="test-group">
+            <h3>Test 2: Proxied Connection via Port 3000</h3>
+            <p>This tests if your Vite proxy is configured correctly</p>
+            <button onclick="testProxied()">Test Proxied (Port 3000)</button>
+            <div id="proxied-result"></div>
+        </div>
+
+        <div class="test-group">
+            <h3>Test 3: Dashboard Stats Endpoint</h3>
+            <button onclick="testStats()">Test Stats API</button>
+            <div id="stats-result"></div>
+        </div>
+
+        <div class="test-group">
+            <h3>Test 4: Recent Activity Endpoint</h3>
+            <button onclick="testActivity()">Test Activity API</button>
+            <div id="activity-result"></div>
+        </div>
+    </div>
+
+    <script>
+        async function testDirect() {
+            const resultDiv = document.getElementById('direct-result');
+            resultDiv.innerHTML = '<div class="result info">Testing...</div>';
+
+            try {
+                const response = await fetch('http://localhost:8000/health');
+                const data = await response.json();
+                resultDiv.innerHTML = `<div class="result success">
+✅ Success! API server is running on port 8000
+Response: ${JSON.stringify(data, null, 2)}
+                </div>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">
+❌ Failed to connect to port 8000
+Error: ${error.message}
+
+Make sure the API server is running:
+  uvicorn api:app --host 0.0.0.0 --port 8000
+                </div>`;
+            }
+        }
+
+        async function testProxied() {
+            const resultDiv = document.getElementById('proxied-result');
+            resultDiv.innerHTML = '<div class="result info">Testing...</div>';
+
+            try {
+                const response = await fetch('/api/v1/dashboard/stats');
+                const data = await response.json();
+                resultDiv.innerHTML = `<div class="result success">
+✅ Success! Proxy is working correctly
+Response: ${JSON.stringify(data, null, 2)}
+                </div>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">
+❌ Proxy not working
+Error: ${error.message}
+
+Add this to your vite.config.ts:
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      }
+    }
+  }
+                </div>`;
+            }
+        }
+
+        async function testStats() {
+            const resultDiv = document.getElementById('stats-result');
+            resultDiv.innerHTML = '<div class="result info">Testing...</div>';
+
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/dashboard/stats');
+                const data = await response.json();
+                resultDiv.innerHTML = `<div class="result success">
+✅ Stats endpoint working!
+${JSON.stringify(data, null, 2)}
+                </div>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">
+❌ Error: ${error.message}
+                </div>`;
+            }
+        }
+
+        async function testActivity() {
+            const resultDiv = document.getElementById('activity-result');
+            resultDiv.innerHTML = '<div class="result info">Testing...</div>';
+
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/dashboard/recent-activity');
+                const data = await response.json();
+                resultDiv.innerHTML = `<div class="result success">
+✅ Activity endpoint working!
+Found ${data.activities.length} activities
+${JSON.stringify(data, null, 2)}
+                </div>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">
+❌ Error: ${error.message}
+                </div>`;
+            }
+        }
+
+        // Auto-run tests on page load
+        window.onload = () => {
+            setTimeout(testDirect, 500);
+        };
+    </script>
+</body>
+</html>
