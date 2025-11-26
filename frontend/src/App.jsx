@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import Dashboard from './pages/Dashboard'
 import Constituents from './pages/Constituents'
@@ -18,6 +18,8 @@ function App() {
             <Route path="constituents/:id" element={<ConstituentDetail />} />
             <Route path="contributions" element={<Contributions />} />
           </Route>
+          {/* Redirect any unknown routes (including /login) to dashboard */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
