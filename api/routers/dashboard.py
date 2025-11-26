@@ -70,7 +70,7 @@ async def get_dashboard_stats(
         ~Opportunity.stage.in_(["closed_won", "closed_lost"])
     ).all()
     weighted_pipeline = sum(
-        opp.amount * (opp.probability / 100) for opp in opportunities
+        float(opp.amount) * (opp.probability / 100) for opp in opportunities
     ) if opportunities else Decimal(0)
 
     # Recent interactions
