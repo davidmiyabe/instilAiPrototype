@@ -117,8 +117,13 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     return user
 
 
-async def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
+async def get_current_active_user() -> User:
     """Get the current active user (not disabled)."""
-    if current_user.disabled:
-        raise HTTPException(status_code=400, detail="Inactive user")
-    return current_user
+    # For prototype: return a mock user without authentication
+    return User(
+        id=1,
+        username="prototype_user",
+        email="prototype@example.com",
+        full_name="Prototype User",
+        disabled=False
+    )

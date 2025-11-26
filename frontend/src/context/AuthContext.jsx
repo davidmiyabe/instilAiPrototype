@@ -12,36 +12,22 @@ export const useAuth = () => {
 }
 
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(localStorage.getItem('token'))
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
+  // For prototype: No authentication needed
+  const token = null
+  const user = {
+    id: 1,
+    username: 'prototype_user',
+    email: 'prototype@example.com',
+    full_name: 'Prototype User'
+  }
+  const loading = false
 
-  useEffect(() => {
-    if (token) {
-      authAPI
-        .getCurrentUser()
-        .then((response) => setUser(response.data))
-        .catch(() => {
-          localStorage.removeItem('token')
-          setToken(null)
-        })
-        .finally(() => setLoading(false))
-    } else {
-      setLoading(false)
-    }
-  }, [token])
-
-  const login = async (username, password) => {
-    const response = await authAPI.login(username, password)
-    const { access_token } = response.data
-    localStorage.setItem('token', access_token)
-    setToken(access_token)
+  const login = async () => {
+    // No-op for prototype
   }
 
   const logout = () => {
-    localStorage.removeItem('token')
-    setToken(null)
-    setUser(null)
+    // No-op for prototype
   }
 
   return (
