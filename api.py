@@ -57,13 +57,15 @@ def get_dashboard_stats():
     try:
         # Total constituents
         total_constituents = db.query(func.count(Constituent.constituent_id)).scalar()
+        active_constituents = total_constituents  # All constituents are considered active for now
 
         # Total contributions and amount
-        total_contributions_count = db.query(func.count(Contribution.contribution_id)).scalar()
-        total_contributions_amount = db.query(func.sum(Contribution.amount)).scalar() or 0
+        total_contributions = db.query(func.sum(Contribution.amount)).filter(
+            Contribution.amount.isnot(None)
+        ).scalar() or 0
 
-        # Average gift amount
-        avg_gift = db.query(func.avg(Contribution.amount)).filter(
+        # Average contribution
+        average_contribution = db.query(func.avg(Contribution.amount)).filter(
             Contribution.amount.isnot(None)
         ).scalar() or 0
 
@@ -73,40 +75,41 @@ def get_dashboard_stats():
             Interaction.interaction_date >= thirty_days_ago
         ).scalar()
 
-        # Active opportunities
-        active_opportunities = db.query(func.count(Opportunity.opportunity_id)).filter(
+        # Contributions this year
+        year_start = datetime(datetime.now().year, 1, 1).date()
+        contributions_this_year = db.query(func.sum(Contribution.amount)).filter(
+            Contribution.contribution_date >= year_start,
+            Contribution.amount.isnot(None)
+        ).scalar() or 0
+
+        # Contributions this month
+        month_start = datetime(datetime.now().year, datetime.now().month, 1).date()
+        contributions_this_month = db.query(func.sum(Contribution.amount)).filter(
+            Contribution.contribution_date >= month_start,
+            Contribution.amount.isnot(None)
+        ).scalar() or 0
+
+        # Open opportunities (active stages)
+        open_opportunities = db.query(func.count(Opportunity.opportunity_id)).filter(
             Opportunity.stage.in_(['Qualification', 'Cultivation', 'Proposal', 'Negotiation'])
         ).scalar()
 
-        # Total pipeline value
-        pipeline_value = db.query(func.sum(Opportunity.expected_amount)).filter(
+        # Weighted pipeline value
+        weighted_pipeline = db.query(func.sum(Opportunity.expected_amount)).filter(
             Opportunity.stage.in_(['Qualification', 'Cultivation', 'Proposal', 'Negotiation']),
             Opportunity.expected_amount.isnot(None)
         ).scalar() or 0
 
-        # Constituent breakdown by type
-        constituent_types = db.query(
-            Constituent.constituent_type,
-            func.count(Constituent.constituent_id)
-        ).group_by(Constituent.constituent_type).all()
-
-        constituent_breakdown = {
-            ctype: count for ctype, count in constituent_types
-        }
-
         return {
             "total_constituents": total_constituents,
-            "total_contributions": {
-                "count": total_contributions_count,
-                "amount": float(total_contributions_amount)
-            },
-            "average_gift": float(avg_gift),
+            "active_constituents": active_constituents,
+            "total_contributions": float(total_contributions),
+            "average_contribution": float(average_contribution),
             "recent_interactions": recent_interactions,
-            "active_opportunities": {
-                "count": active_opportunities,
-                "pipeline_value": float(pipeline_value)
-            },
-            "constituent_breakdown": constituent_breakdown
+            "contributions_this_year": float(contributions_this_year),
+            "contributions_this_month": float(contributions_this_month),
+            "open_opportunities": open_opportunities,
+            "weighted_pipeline": float(weighted_pipeline)
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -120,49 +123,45 @@ def get_recent_activity():
     db = next(get_db())
 
     try:
-        activities = []
-
         # Get recent contributions (last 10)
-        recent_contributions = db.query(Contribution).join(Constituent).order_by(
+        contributions = db.query(Contribution).join(Constituent).order_by(
             Contribution.contribution_date.desc()
         ).limit(10).all()
 
-        for contrib in recent_contributions:
-            activities.append({
-                "id": f"contribution-{contrib.contribution_id}",
-                "type": "contribution",
-                "date": contrib.contribution_date.isoformat(),
-                "title": f"New {contrib.contribution_type} Contribution",
-                "description": f"{contrib.constituent.full_name} contributed ${float(contrib.amount or 0):.2f}",
+        recent_contributions = [
+            {
+                "id": contrib.contribution_id,
                 "amount": float(contrib.amount or 0),
+                "date": contrib.contribution_date.isoformat(),
                 "constituent_name": contrib.constituent.full_name,
-                "constituent_id": contrib.constituent_id
-            })
+                "constituent_id": contrib.constituent_id,
+                "type": contrib.contribution_type,
+                "campaign_id": contrib.campaign_id
+            }
+            for contrib in contributions
+        ]
 
         # Get recent interactions (last 10)
-        recent_interactions = db.query(Interaction).join(Constituent).order_by(
+        interactions = db.query(Interaction).join(Constituent).order_by(
             Interaction.interaction_date.desc()
         ).limit(10).all()
 
-        for interaction in recent_interactions:
-            activities.append({
-                "id": f"interaction-{interaction.interaction_id}",
-                "type": "interaction",
+        recent_interactions = [
+            {
+                "id": interaction.interaction_id,
+                "subject": interaction.subject or interaction.interaction_type,
+                "type": interaction.interaction_type,
                 "date": interaction.interaction_date.isoformat(),
-                "title": f"{interaction.interaction_type}",
-                "description": f"{interaction.interaction_type} with {interaction.constituent.full_name}",
-                "subject": interaction.subject,
                 "constituent_name": interaction.constituent.full_name,
                 "constituent_id": interaction.constituent_id,
                 "staff_member": interaction.staff_member
-            })
+            }
+            for interaction in interactions
+        ]
 
-        # Sort all activities by date (most recent first)
-        activities.sort(key=lambda x: x["date"], reverse=True)
-
-        # Return top 20 activities
         return {
-            "activities": activities[:20]
+            "recent_contributions": recent_contributions,
+            "recent_interactions": recent_interactions
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
