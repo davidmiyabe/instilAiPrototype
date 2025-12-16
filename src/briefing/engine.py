@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 import os
 from anthropic import Anthropic
+from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, func
 
@@ -17,6 +18,9 @@ from sqlalchemy import desc, func
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 from models import Constituent, Contribution, Interaction, Opportunity
+
+
+load_dotenv()
 
 
 class BriefingEngine:
@@ -35,10 +39,7 @@ class BriefingEngine:
             api_key: Anthropic API key. If not provided, reads from ANTHROPIC_API_KEY env var.
         """
         self.api_key = api_key or os.getenv('ANTHROPIC_API_KEY')
-        if not self.api_key:
-            raise ValueError("ANTHROPIC_API_KEY must be provided or set in environment")
-
-        self.client = Anthropic(api_key=self.api_key)
+        self.client = Anthropic(api_key=self.api_key) if self.api_key else None
         self.model = "claude-sonnet-4-5-20250929"  # Latest Claude model
 
     def generate_briefing(
@@ -157,6 +158,10 @@ class BriefingEngine:
         # Prepare structured data for AI analysis
         context = self._prepare_context_for_ai(data)
 
+        # If AI client unavailable, immediately use fallback briefing
+        if not self.client:
+            return self._generate_fallback_briefing(data)
+
         # Create the prompt for Claude
         prompt = self._create_briefing_prompt(context)
 
@@ -178,7 +183,7 @@ class BriefingEngine:
 
             return briefing
 
-        except Exception as e:
+        except Exception:
             # Fallback to basic briefing if AI fails
             return self._generate_fallback_briefing(data)
 
@@ -228,13 +233,13 @@ class BriefingEngine:
                     'amount': float(contributions[-1].amount)
                 },
                 'gifts_by_type': self._count_by_field(contributions, 'contribution_type'),
-                'campaigns': self._count_by_field(contributions, 'campaign_id'),
+                'campaigns': self._count_by_field(contributions, 'campaign'),
                 'recent_gifts': [
                     {
                         'date': c.contribution_date.isoformat(),
                         'amount': float(c.amount),
                         'type': c.contribution_type,
-                        'campaign': c.campaign_id
+                        'campaign': c.campaign
                     }
                     for c in contributions[:5]  # Last 5 gifts
                 ]
@@ -253,13 +258,15 @@ class BriefingEngine:
                     'subject': interactions[0].subject,
                     'notes': interactions[0].notes
                 },
-                'follow_ups_needed': sum(1 for i in interactions if i.follow_up_required == 'Yes'),
+                'follow_ups_needed': sum(
+                    1 for i in interactions if getattr(i, 'follow_up_required', '') == 'Yes'
+                ),
                 'recent_interactions': [
                     {
                         'date': i.interaction_date.isoformat(),
                         'type': i.interaction_type,
                         'subject': i.subject,
-                        'staff': i.staff_member
+                        'staff': getattr(i, 'staff_member', None)
                     }
                     for i in interactions[:5]  # Last 5 interactions
                 ]
@@ -272,13 +279,13 @@ class BriefingEngine:
             context['opportunities'] = {
                 'total_opportunities': len(opportunities),
                 'stages': self._count_by_field(opportunities, 'stage'),
-                'total_expected_amount': sum(float(o.expected_amount) for o in opportunities if o.expected_amount),
+                'total_expected_amount': sum(float(o.amount) for o in opportunities if o.amount),
                 'total_weighted_amount': sum(float(o.weighted_amount) for o in opportunities if o.weighted_amount),
                 'active_opportunities': [
                     {
                         'name': o.opportunity_name,
                         'stage': o.stage,
-                        'amount': float(o.expected_amount) if o.expected_amount else 0,
+                        'amount': float(o.amount) if o.amount else 0,
                         'probability': o.probability,
                         'close_date': o.expected_close_date.isoformat() if o.expected_close_date else None
                     }
@@ -478,7 +485,7 @@ IMPORTANT:
             segment_reason = "Not currently assigned to any segments. Consider segmentation based on engagement level."
 
         # Suggested action
-        if interactions and interactions[0].follow_up_required == 'Yes':
+        if interactions and getattr(interactions[0], 'follow_up_required', '') == 'Yes':
             suggested_action = "Complete pending follow-up from most recent interaction."
         elif opportunities and any(o.stage in ['Cultivation', 'Proposal'] for o in opportunities):
             suggested_action = "Advance active opportunity through the pipeline."

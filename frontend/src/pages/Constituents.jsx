@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { constituentsAPI } from '../services/api'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { constituentsAPI, segmentsAPI } from '../services/api'
 
 export default function Constituents() {
   const [constituents, setConstituents] = useState([])
@@ -8,6 +8,11 @@ export default function Constituents() {
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+  const location = useLocation()
+  const navigate = useNavigate()
+  const initialSegment = new URLSearchParams(location.search).get('segment') || ''
+  const [segmentFilter, setSegmentFilter] = useState(initialSegment)
+  const [segmentOptions, setSegmentOptions] = useState([])
 
   const loadConstituents = () => {
     setLoading(true)
@@ -16,6 +21,7 @@ export default function Constituents() {
         search: search || undefined,
         constituent_type: typeFilter || undefined,
         status: statusFilter || undefined,
+        segment_id: segmentFilter || undefined,
       })
       .then((response) => setConstituents(response.data))
       .catch((error) => console.error('Error loading constituents:', error))
@@ -24,7 +30,22 @@ export default function Constituents() {
 
   useEffect(() => {
     loadConstituents()
-  }, [search, typeFilter, statusFilter])
+  }, [search, typeFilter, statusFilter, segmentFilter])
+
+  useEffect(() => {
+    segmentsAPI
+      .getDefinitions()
+      .then((response) => setSegmentOptions(response.data))
+      .catch((error) => console.error('Error loading segments:', error))
+  }, [])
+
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (segmentFilter) {
+      params.set('segment', segmentFilter)
+    }
+    navigate({ pathname: '/constituents', search: params.toString() }, { replace: true })
+  }, [segmentFilter, navigate])
 
   return (
     <div className="constituents">
@@ -60,6 +81,18 @@ export default function Constituents() {
           <option value="">All Statuses</option>
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
+        </select>
+        <select
+          value={segmentFilter}
+          onChange={(e) => setSegmentFilter(e.target.value)}
+          className="filter-select"
+        >
+          <option value="">All Segments</option>
+          {segmentOptions.map((segment) => (
+            <option key={segment.segment_id} value={segment.segment_id}>
+              {segment.name} ({segment.constituent_count})
+            </option>
+          ))}
         </select>
       </div>
 

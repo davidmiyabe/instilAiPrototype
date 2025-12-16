@@ -199,6 +199,80 @@
   margin-bottom: 0.25rem;
 }
 
+.segment-section {
+  margin-top: 2.5rem;
+}
+
+.segment-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.segment-header h2 {
+  font-size: 1.25rem;
+  color: var(--text-primary);
+}
+
+.segment-header p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.segment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.segment-card {
+  background: white;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.segment-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.segment-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.segment-card h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+}
+
+.segment-count {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.segment-description {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.segment-constituents {
+  margin: 0.75rem 0 0;
+  padding-left: 1.25rem;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
 .activity-meta {
   font-size: 0.875rem;
   color: var(--text-secondary);
@@ -348,4 +422,114 @@
   .detail-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Voice modal + AI call assistant */
+.voice-modal-content {
+  max-width: 920px;
+}
+
+.call-assistant-panel {
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  background: #f8fafc;
+  margin-bottom: 1.5rem;
+}
+
+.call-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.call-status-badge {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--primary-color);
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.conversation-log {
+  max-height: 220px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.conversation-entry {
+  margin-bottom: 0.85rem;
+}
+
+.conversation-entry:last-child {
+  margin-bottom: 0;
+}
+
+.conversation-speaker {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  display: block;
+}
+
+.conversation-ai p {
+  background: rgba(59, 130, 246, 0.08);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.conversation-user p {
+  background: rgba(16, 185, 129, 0.12);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.conversation-placeholder {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.call-input-bar {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.call-input-bar textarea {
+  width: 100%;
+}
+
+.call-input-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.voice-prompts h3 {
+  margin-bottom: 0.75rem;
+}
+
+.voice-prompt.active {
+  border-color: var(--primary-color);
+  box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.2);
+}
+
+.call-summary-card {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background: #ecfeff;
+  border: 1px solid var(--border-color);
+}
+
+.call-summary-card ul {
+  margin-top: 0.75rem;
+  padding-left: 1.25rem;
 }

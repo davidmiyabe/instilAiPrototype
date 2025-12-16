@@ -10,6 +10,7 @@ from api.deps import get_db
 from api.auth import get_current_active_user, User
 from api.schemas import ConstituentCreate, ConstituentUpdate, ConstituentResponse
 from models import Constituent
+from src.segments.engine import SegmentationEngine
 
 
 router = APIRouter()
@@ -22,6 +23,7 @@ async def list_constituents(
     search: Optional[str] = None,
     constituent_type: Optional[str] = None,
     status: Optional[str] = None,
+    segment_id: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
@@ -52,6 +54,18 @@ async def list_constituents(
 
     if status:
         query = query.filter(Constituent.status == status)
+
+    if segment_id:
+        engine = SegmentationEngine(db)
+        segments = engine.generate_all_segments()
+        segment = next((s for s in segments if s.segment_id == segment_id), None)
+        if segment:
+            if segment.constituent_ids:
+                query = query.filter(Constituent.constituent_id.in_(segment.constituent_ids))
+            else:
+                return []
+        else:
+            return []
 
     # Order by most recently updated
     query = query.order_by(Constituent.updated_at.desc())

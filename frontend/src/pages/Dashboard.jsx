@@ -1,16 +1,24 @@
 import { useState, useEffect } from 'react'
-import { dashboardAPI } from '../services/api'
+import { useNavigate } from 'react-router-dom'
+import { dashboardAPI, segmentsAPI } from '../services/api'
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null)
   const [recentActivity, setRecentActivity] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [segments, setSegments] = useState([])
+  const navigate = useNavigate()
 
   useEffect(() => {
-    Promise.all([dashboardAPI.getStats(), dashboardAPI.getRecentActivity()])
-      .then(([statsRes, activityRes]) => {
+    Promise.all([
+      dashboardAPI.getStats(),
+      dashboardAPI.getRecentActivity(),
+      segmentsAPI.getSuggestions({ limit: 4, per_segment: 4 }),
+    ])
+      .then(([statsRes, activityRes, segmentsRes]) => {
         setStats(statsRes.data)
         setRecentActivity(activityRes.data)
+        setSegments(segmentsRes.data)
       })
       .catch((error) => console.error('Error loading dashboard:', error))
       .finally(() => setLoading(false))
@@ -112,6 +120,47 @@ export default function Dashboard() {
               <p className="no-data">No recent interactions</p>
             )}
           </div>
+        </div>
+      </div>
+
+      <div className="segment-section">
+        <div className="segment-header">
+          <h2>AI Segment Opportunities</h2>
+          <p>Click a segment to jump to the prioritized constituent list.</p>
+        </div>
+        <div className="segment-grid">
+          {segments.map((segment) => (
+            <div
+              key={segment.segment_id}
+              className="segment-card"
+              role="button"
+              tabIndex={0}
+              onClick={() => navigate(`/constituents?segment=${segment.segment_id}`)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  navigate(`/constituents?segment=${segment.segment_id}`)
+                }
+              }}
+            >
+              <div className="segment-card-header">
+                <h3>{segment.name}</h3>
+                <span className="segment-count">{segment.metrics.count || segment.constituents.length} constituents</span>
+              </div>
+              <p className="segment-description">{segment.description}</p>
+              {segment.constituents?.length > 0 && (
+                <ul className="segment-constituents">
+                  {segment.constituents.slice(0, 3).map((constituent) => (
+                    <li key={constituent.constituent_id}>
+                      {constituent.name}
+                      {constituent.metrics?.lifetime_giving
+                        ? ` • $${Number(constituent.metrics.lifetime_giving).toLocaleString()}`
+                        : ''}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </div>

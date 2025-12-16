@@ -30,6 +30,17 @@ export const constituentsAPI = {
   update: (id, data) => api.put(`/constituents/${id}`, data),
   delete: (id) => api.delete(`/constituents/${id}`),
   getSummary: (id) => api.get(`/constituents/${id}/summary`),
+  getBriefing: (id, segments) =>
+    api.get(`/constituents/${id}/briefing`, {
+      params: segments ? { segments: segments.join(',') } : undefined,
+    }),
+  getSegmentSuggestion: (id) =>
+    api.get(`/segments/constituents/${id}/suggestion`),
+}
+
+export const segmentsAPI = {
+  getSuggestions: (params) => api.get('/segments/suggestions', { params }),
+  getDefinitions: () => api.get('/segments/definitions'),
 }
 
 // Contributions API
@@ -67,6 +78,17 @@ export const opportunitiesAPI = {
 export const dashboardAPI = {
   getStats: () => api.get('/dashboard/stats'),
   getRecentActivity: () => api.get('/dashboard/recent-activity'),
+}
+
+export const tasksAPI = {
+  create: (data) => api.post('/tasks', data),
+  list: (params) => api.get('/tasks', { params }),
+  complete: (id) => api.post(`/tasks/${id}/complete`),
+}
+
+export const voiceAPI = {
+  speak: (data) => api.post('/voice/speak', data),
+  agent: (data) => api.post('/voice/agent', data),
 }
 
 export default api

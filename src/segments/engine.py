@@ -8,7 +8,7 @@ and generating actionable segments for fundraising teams.
 from datetime import datetime, date, timedelta
 from decimal import Decimal
 from typing import List, Dict, Optional, Any
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from sqlalchemy.orm import Session
 from sqlalchemy import func, and_, or_, desc
 
@@ -44,6 +44,7 @@ class Segment:
     constituent_ids: List[int]
     suggested_actions: Dict[int, str]
     segment_metrics: Dict[str, Any]
+    constituent_reasons: Dict[int, str] = field(default_factory=dict)
 
     def to_dict(self) -> Dict:
         """Convert segment to dictionary format."""
@@ -66,6 +67,13 @@ class SegmentationEngine:
         self.session = session
         self.reference_date = reference_date or datetime.now().date()
         self._constituent_cache = {}
+
+    @staticmethod
+    def _format_days(value: float) -> str:
+        """Convert day counts to readable text."""
+        if value == float('inf'):
+            return "no recorded contact"
+        return f"{int(value)} days"
 
     def get_constituent_data(self, constituent_id: int) -> Dict[str, Any]:
         """
@@ -119,9 +127,13 @@ class SegmentationEngine:
         trend_analysis = calculate_three_gift_trend(amounts) if amounts else None
 
         # Get last interaction date
-        last_interaction_date = max(
-            [i.interaction_date for i in interactions]
-        ) if interactions else None
+        if interactions:
+            last_record = max([i.interaction_date for i in interactions])
+            last_interaction_date = (
+                last_record.date() if hasattr(last_record, 'date') else last_record
+            )
+        else:
+            last_interaction_date = None
 
         days_since_interaction = days_since_last_contact(
             last_interaction_date, self.reference_date
@@ -186,6 +198,7 @@ class SegmentationEngine:
         """
         matching_constituents = []
         actions = {}
+        reasons = {}
 
         # Query all constituents with some giving history
         constituents = self.session.query(Constituent).filter(
@@ -194,6 +207,8 @@ class SegmentationEngine:
 
         for constituent in constituents:
             data = self.get_constituent_data(constituent.constituent_id)
+            if not data:
+                continue
 
             capacity = data['capacity_score']
             rfm = data['rfm']
@@ -210,6 +225,10 @@ class SegmentationEngine:
                         'capacity_score': capacity
                     }
                 )
+                reasons[constituent.constituent_id] = (
+                    f"Capacity score {capacity:.0f} with lifetime giving ${data['total_lifetime_giving']:,.0f}, "
+                    f"but average gift ${avg_gift:,.0f} and last gift {self._format_days(rfm['recency'])}."
+                )
 
         return Segment(
             segment_id='high_capacity_low_giving',
@@ -224,7 +243,8 @@ class SegmentationEngine:
                     self.get_constituent_data(cid)['capacity_score']
                     for cid in matching_constituents
                 ) / len(matching_constituents) if matching_constituents else 0
-            }
+            },
+            constituent_reasons=reasons
         )
 
     def segment_increasing_giving(self) -> Segment:
@@ -237,6 +257,7 @@ class SegmentationEngine:
         """
         matching_constituents = []
         actions = {}
+        reasons = {}
 
         # Query constituents with at least 6 contributions
         constituents = self.session.query(
@@ -249,6 +270,8 @@ class SegmentationEngine:
 
         for (constituent_id,) in constituents:
             data = self.get_constituent_data(constituent_id)
+            if not data:
+                continue
             trend = data.get('trend_analysis')
 
             if trend and trend['trend'] == 'increasing':
@@ -260,6 +283,10 @@ class SegmentationEngine:
                         'frequency': data['rfm']['frequency'],
                         'pct_change': trend['pct_change']
                     }
+                )
+                reasons[constituent_id] = (
+                    f"Last three gifts average ${float(trend['last_avg']):,.0f}, up "
+                    f"{trend['pct_change']:.1f}% over the prior window."
                 )
 
         return Segment(
@@ -275,7 +302,8 @@ class SegmentationEngine:
                     self.get_constituent_data(cid)['trend_analysis']['pct_change']
                     for cid in matching_constituents
                 ) / len(matching_constituents) if matching_constituents else 0
-            }
+            },
+            constituent_reasons=reasons
         )
 
     def segment_declining_giving(self) -> Segment:
@@ -288,6 +316,7 @@ class SegmentationEngine:
         """
         matching_constituents = []
         actions = {}
+        reasons = {}
 
         # Query constituents with at least 6 contributions
         constituents = self.session.query(
@@ -300,6 +329,8 @@ class SegmentationEngine:
 
         for (constituent_id,) in constituents:
             data = self.get_constituent_data(constituent_id)
+            if not data:
+                continue
             trend = data.get('trend_analysis')
 
             if trend and trend['trend'] == 'decreasing':
@@ -311,6 +342,10 @@ class SegmentationEngine:
                         'frequency': data['rfm']['frequency'],
                         'pct_change': trend['pct_change']
                     }
+                )
+                reasons[constituent_id] = (
+                    f"Rolling average fell {abs(trend['pct_change']):.1f}% "
+                    f"(from ${float(trend['first_avg']):,.0f} to ${float(trend['last_avg']):,.0f})."
                 )
 
         return Segment(
@@ -326,7 +361,8 @@ class SegmentationEngine:
                     self.get_constituent_data(cid)['trend_analysis']['pct_change']
                     for cid in matching_constituents
                 ) / len(matching_constituents) if matching_constituents else 0
-            }
+            },
+            constituent_reasons=reasons
         )
 
     def segment_no_recent_contact(self, days_threshold: int = 90) -> Segment:
@@ -339,6 +375,7 @@ class SegmentationEngine:
         """
         matching_constituents = []
         actions = {}
+        reasons = {}
 
         # Get all constituents with contribution history
         constituents = self.session.query(Constituent).filter(
@@ -347,6 +384,8 @@ class SegmentationEngine:
 
         for constituent in constituents:
             data = self.get_constituent_data(constituent.constituent_id)
+            if not data:
+                continue
             days_since = data['days_since_last_interaction']
 
             if days_since == float('inf') or days_since > days_threshold:
@@ -358,6 +397,10 @@ class SegmentationEngine:
                         'frequency': data['rfm']['frequency'],
                         'days_since_contact': days_since
                     }
+                )
+                reasons[constituent.constituent_id] = (
+                    f"No interaction recorded for {self._format_days(days_since)} "
+                    f"despite ${data['total_lifetime_giving']:,.0f} lifetime giving."
                 )
 
         return Segment(
@@ -374,7 +417,8 @@ class SegmentationEngine:
                     d if (d := self.get_constituent_data(cid)['days_since_last_interaction']) != float('inf') else 999
                     for cid in matching_constituents
                 ) / len(matching_constituents) if matching_constituents else 0
-            }
+            },
+            constituent_reasons=reasons
         )
 
     def segment_potential_major_donors(self) -> Segment:
@@ -389,17 +433,21 @@ class SegmentationEngine:
         """
         matching_constituents = []
         actions = {}
+        reasons = {}
 
         # Query all constituents
         constituents = self.session.query(Constituent).all()
 
         for constituent in constituents:
             data = self.get_constituent_data(constituent.constituent_id)
+            if not data:
+                continue
 
             capacity = data['capacity_score']
             engagement = data['engagement_score']
             total_giving = data['total_lifetime_giving']
-            trend = data.get('trend_analysis', {}).get('trend', 'insufficient_data')
+            trend_data = data.get('trend_analysis') or {}
+            trend = trend_data.get('trend', 'insufficient_data')
 
             # High capacity + high engagement + positive indicators
             if (capacity >= 70 and engagement >= 50 and
@@ -413,6 +461,10 @@ class SegmentationEngine:
                         'capacity_score': capacity,
                         'engagement_score': engagement
                     }
+                )
+                reasons[constituent.constituent_id] = (
+                    f"Capacity score {capacity:.0f}, engagement {engagement:.0f}, "
+                    f"lifetime giving ${total_giving:,.0f} with trend {trend}."
                 )
 
         return Segment(
@@ -436,7 +488,8 @@ class SegmentationEngine:
                     self.get_constituent_data(cid)['total_lifetime_giving']
                     for cid in matching_constituents
                 )
-            }
+            },
+            constituent_reasons=reasons
         )
 
     def segment_major_donors_neglected(self) -> Segment:
@@ -451,6 +504,7 @@ class SegmentationEngine:
         """
         matching_constituents = []
         actions = {}
+        reasons = {}
 
         # Query major donors or high lifetime giving
         constituents = self.session.query(Constituent).filter(
@@ -462,6 +516,8 @@ class SegmentationEngine:
 
         for constituent in constituents:
             data = self.get_constituent_data(constituent.constituent_id)
+            if not data:
+                continue
             days_since = data['days_since_last_interaction']
 
             if days_since == float('inf') or days_since > 60:
@@ -473,6 +529,10 @@ class SegmentationEngine:
                         'frequency': data['rfm']['frequency'],
                         'days_since_contact': days_since
                     }
+                )
+                reasons[constituent.constituent_id] = (
+                    f"Major supporter (${data['total_lifetime_giving']:,.0f}) with "
+                    f"{self._format_days(days_since)} since last interaction."
                 )
 
         return Segment(
@@ -492,7 +552,8 @@ class SegmentationEngine:
                     d if (d := self.get_constituent_data(cid)['days_since_last_interaction']) != float('inf') else 999
                     for cid in matching_constituents
                 ) / len(matching_constituents) if matching_constituents else 0
-            }
+            },
+            constituent_reasons=reasons
         )
 
     def segment_seasonal_givers(self) -> Segment:
@@ -506,6 +567,7 @@ class SegmentationEngine:
         """
         matching_constituents = []
         actions = {}
+        reasons = {}
 
         # Query constituents with at least 3 contributions
         constituents = self.session.query(
@@ -518,6 +580,8 @@ class SegmentationEngine:
 
         for (constituent_id,) in constituents:
             data = self.get_constituent_data(constituent_id)
+            if not data:
+                continue
             seasonal = data.get('seasonal_analysis')
 
             if seasonal and seasonal['has_pattern']:
@@ -526,6 +590,10 @@ class SegmentationEngine:
                 # Customize action with seasonal info
                 next_date = seasonal.get('next_likely_gift_date')
                 preferred = ', '.join(seasonal['preferred_months'][:2])
+                next_date_str = (
+                    seasonal.get('next_likely_gift_date').isoformat()
+                    if seasonal.get('next_likely_gift_date') else 'during their peak months'
+                )
 
                 custom_action = (
                     f"Time outreach to align with their historical giving pattern "
@@ -534,6 +602,9 @@ class SegmentationEngine:
                 )
 
                 actions[constituent_id] = custom_action
+                reasons[constituent_id] = (
+                    f"Gives predictably around {preferred}; next likely gift {next_date_str}."
+                )
 
         return Segment(
             segment_id='seasonal_givers',
@@ -548,7 +619,8 @@ class SegmentationEngine:
                     self.get_constituent_data(cid)['seasonal_analysis']['pattern_strength']
                     for cid in matching_constituents
                 ) / len(matching_constituents) if matching_constituents else 0
-            }
+            },
+            constituent_reasons=reasons
         )
 
     def generate_all_segments(self) -> List[Segment]:

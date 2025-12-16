@@ -291,7 +291,7 @@ DATABASE_URL=sqlite:///nonprofit_crm.db
 API_HOST=0.0.0.0
 API_PORT=8000
 LOG_LEVEL=info
-CORS_ORIGINS=http://localhost:3000
+CORS_ORIGINS=http://localhost:5173
 
 # For production PostgreSQL
 # DATABASE_URL=postgresql://user:password@localhost:5432/nonprofit_crm

@@ -9,13 +9,10 @@ from fastapi import APIRouter, HTTPException, Query, Depends
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 import os
-import sys
 
-# Add parent directories to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
-
-from models import get_session
+from api.deps import get_db
 from src.briefing.engine import BriefingEngine
+from src.segments.engine import SegmentationEngine
 
 
 # Pydantic models for API request/response
@@ -68,30 +65,15 @@ class ErrorResponse(BaseModel):
 
 # Create router
 router = APIRouter(
-    prefix="/api/constituents",
+    prefix="/constituents",
     tags=["constituents", "briefings"]
 )
-
-
-# Dependency to get database session
-def get_db():
-    """Get database session for request."""
-    session = get_session()
-    try:
-        yield session
-    finally:
-        session.close()
 
 
 # Dependency to get briefing engine
 def get_briefing_engine() -> BriefingEngine:
     """Get briefing engine instance with API key from environment."""
     api_key = os.getenv('ANTHROPIC_API_KEY')
-    if not api_key:
-        raise HTTPException(
-            status_code=500,
-            detail="ANTHROPIC_API_KEY not configured. Please set environment variable."
-        )
     return BriefingEngine(api_key=api_key)
 
 
@@ -161,10 +143,23 @@ async def get_constituent_briefing(
         HTTPException: 404 if constituent not found, 500 for server errors
     """
     try:
-        # Parse segments from query parameter
         segment_list = []
+        numeric_id = None
+        try:
+            numeric_id = int(constituent_id)
+        except ValueError:
+            numeric_id = None
+
         if segments:
             segment_list = [s.strip() for s in segments.split(',') if s.strip()]
+        else:
+            seg_engine = SegmentationEngine(db)
+            generated_segments = seg_engine.generate_all_segments()
+            segment_list = [
+                seg.name
+                for seg in generated_segments
+                if numeric_id is not None and numeric_id in seg.constituent_ids
+            ]
 
         # Generate briefing
         briefing_data = engine.generate_briefing(

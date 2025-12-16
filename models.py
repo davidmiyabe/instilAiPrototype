@@ -66,6 +66,11 @@ class Constituent(Base):
         back_populates="constituent",
         cascade="all, delete-orphan"
     )
+    tasks = relationship(
+        "Task",
+        back_populates="constituent",
+        cascade="all, delete-orphan"
+    )
 
     # Constraints
     __table_args__ = (
@@ -166,7 +171,7 @@ class Interaction(Base):
     __table_args__ = (
         CheckConstraint(
             interaction_type.in_([
-                'email', 'phone', 'meeting', 'event', 'letter', 'other'
+                'email', 'phone', 'meeting', 'event', 'letter', 'call', 'other'
             ]),
             name='chk_interaction_type'
         ),
@@ -405,3 +410,29 @@ def get_db():
         yield db
     finally:
         db.close()
+class Task(Base):
+    """Represents follow-up tasks generated from interactions."""
+    __tablename__ = 'tasks'
+
+    task_id = Column(Integer, primary_key=True)
+    constituent_id = Column(
+        Integer,
+        ForeignKey('constituents.constituent_id', ondelete='CASCADE', onupdate='CASCADE'),
+        nullable=False
+    )
+    description = Column(Text, nullable=False)
+    status = Column(String(20), default='pending')
+    due_date = Column(Date, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    constituent = relationship("Constituent", back_populates="tasks")
+
+    __table_args__ = (
+        CheckConstraint(
+            status.in_(['pending', 'completed']),
+            name='chk_task_status'
+        ),
+        Index('idx_tasks_constituent', 'constituent_id'),
+        Index('idx_tasks_status', 'status'),
+    )

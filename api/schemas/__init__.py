@@ -23,6 +23,15 @@ from .crm import (
     DashboardStats
 )
 
+from .voice_agent import (
+    VoiceAgentRequest,
+    VoiceAgentResponse,
+    ConversationTurn,
+    SlotState,
+    SlotValue,
+    ChecklistState,
+)
+
 __all__ = [
     "MessageGenerationRequest",
     "MessageGenerationResponse",
@@ -42,5 +51,11 @@ __all__ = [
     "OpportunityCreate",
     "OpportunityUpdate",
     "OpportunityResponse",
-    "DashboardStats"
+    "DashboardStats",
+    "VoiceAgentRequest",
+    "VoiceAgentResponse",
+    "ConversationTurn",
+    "SlotState",
+    "SlotValue",
+    "ChecklistState",
 ]

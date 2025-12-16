@@ -64,7 +64,7 @@ The script will:
 4. Start both backend and frontend servers
 
 **Access the application:**
-- React Frontend: http://localhost:3000
+- React Frontend: http://localhost:5173 (set `FRONTEND_PORT` to override)
 - Backend API: http://localhost:8000
 - API Docs: http://localhost:8000/docs
 
@@ -132,7 +132,8 @@ npm install
 npm run dev
 ```
 
-Frontend will be available at: http://localhost:3000
+Frontend will be available at: http://localhost:5173 (or your configured port).
+Set a custom port by exporting `FRONTEND_PORT` (for example `FRONTEND_PORT=4000 npm run dev`) or by adding it to `frontend/.env`.
 
 ## 📁 Project Structure
 
@@ -270,7 +271,7 @@ ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=1440
 
 # CORS
-CORS_ORIGINS=["http://localhost:3000"]
+CORS_ORIGINS=["http://localhost:5173"]
 ```
 
 ## AI-Driven Insights Engine
@@ -534,7 +535,7 @@ This is a proof-of-concept for educational and demonstration purposes.
 ### Frontend won't start
 - Check Node version (18+ required)
 - Delete `node_modules` and run `npm install` again
-- Check if port 3000 is already in use
+- Check if your configured Vite port (default 5173) is already in use
 
 ### Database errors
 - Delete `nonprofit_crm.db` and run `generate_sample_data.py` again

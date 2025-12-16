@@ -32,6 +32,16 @@ class Settings(BaseSettings):
 
     # API
     API_V1_PREFIX: str = "/api/v1"
+    OPENVOICE_ENABLED: bool = False
+    OPENVOICE_SERVER_URL: Optional[str] = None
+    OPENVOICE_SPEAKER_ID: Optional[str] = "default"
+    OPENVOICE_TIMEOUT_SECONDS: int = 45
+    OPENVOICE_MAX_CHARS: int = 220
+
+    # Anthropic / AI configuration
+    ANTHROPIC_API_KEY: Optional[str] = None
+    ANTHROPIC_MODEL: str = "claude-3-5-sonnet-20241022"
+    VOICE_AGENT_CONFIDENCE_THRESHOLD: float = 0.65
 
     @field_validator('CORS_ORIGINS', mode='before')
     @classmethod

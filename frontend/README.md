@@ -69,7 +69,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the demo.
+Open [http://localhost:5173](http://localhost:5173) (or the port you set in `FRONTEND_PORT`) to see the demo.
 
 ### Build
 

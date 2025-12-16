@@ -7,6 +7,10 @@ from datetime import timedelta
 
 from config import settings
 from api.routers import auth, constituents, contributions, interactions, opportunities, dashboard
+from api.constituents.briefing import router as briefing_router
+from api.routers import segments as segments_router
+from api.routers import tasks as tasks_router
+from api.routers import voice as voice_router
 
 
 # Create FastAPI application
@@ -32,6 +36,10 @@ app.include_router(contributions.router, prefix=settings.API_V1_PREFIX, tags=["C
 app.include_router(interactions.router, prefix=settings.API_V1_PREFIX, tags=["Interactions"])
 app.include_router(opportunities.router, prefix=settings.API_V1_PREFIX, tags=["Opportunities"])
 app.include_router(dashboard.router, prefix=settings.API_V1_PREFIX, tags=["Dashboard"])
+app.include_router(briefing_router, prefix=settings.API_V1_PREFIX, tags=["Briefings"])
+app.include_router(segments_router.router, prefix=settings.API_V1_PREFIX, tags=["Segments"])
+app.include_router(tasks_router.router, prefix=settings.API_V1_PREFIX, tags=["Tasks"])
+app.include_router(voice_router.router, prefix=settings.API_V1_PREFIX, tags=["Voice"])
 
 
 @app.get("/")

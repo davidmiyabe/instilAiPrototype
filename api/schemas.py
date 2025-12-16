@@ -94,7 +94,7 @@ class InteractionBase(BaseModel):
     """Base interaction schema."""
     constituent_id: int
     interaction_date: datetime
-    interaction_type: str = Field(..., pattern="^(email|phone|meeting|event|letter|other)$")
+    interaction_type: str = Field(..., pattern="^(email|phone|meeting|event|letter|call|other)$")
     subject: str = Field(..., max_length=200)
     notes: Optional[str] = None
     outcome: Optional[str] = Field(None, max_length=100)
@@ -108,7 +108,7 @@ class InteractionCreate(InteractionBase):
 class InteractionUpdate(BaseModel):
     """Schema for updating an interaction."""
     interaction_date: Optional[datetime] = None
-    interaction_type: Optional[str] = Field(None, pattern="^(email|phone|meeting|event|letter|other)$")
+    interaction_type: Optional[str] = Field(None, pattern="^(email|phone|meeting|event|letter|call|other)$")
     subject: Optional[str] = Field(None, max_length=200)
     notes: Optional[str] = None
     outcome: Optional[str] = Field(None, max_length=100)
